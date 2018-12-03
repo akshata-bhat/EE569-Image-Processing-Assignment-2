@@ -337,6 +337,10 @@ int holes_protrusions_calculator(int** relabeledMatrix, unsigned char** inputIma
     min_valY = new int[16];
     int *max_valY = NULL;
     max_valY = new int[16];
+    
+    // Finding the starting point for each puzzle - (x, y) co-oridinate in order to perform the 45x45 xor multiplication
+    
+    // Storing the coordinates of all pixels which have the same label 1 - 16 
     int count = 0;
     for (int k = 1; k <= 16; k++) {
         memset(address_X, 0, sizeof(int));
@@ -352,6 +356,7 @@ int holes_protrusions_calculator(int** relabeledMatrix, unsigned char** inputIma
             }
         }
 
+        // sorting the addresses of pixels labeled "n", in order to get the starting and ending y coordinates for that object 
         address_Y = insertion_sort_increasing(address_Y, 5000);
         min_valY[k - 1] = address_Y[0];
         address_Y = sort_decreasing(address_Y, 5000);
@@ -375,6 +380,7 @@ int holes_protrusions_calculator(int** relabeledMatrix, unsigned char** inputIma
     unsigned char **tempImage = NULL;
     tempImage = inputImage;
 
+    // Creating an array to save the 45x45 xor result
     unsigned char **XorArray = NULL;
     XorArray = new unsigned char *[45];
     for (int i = 0; i < 45; ++i) {
@@ -382,6 +388,7 @@ int holes_protrusions_calculator(int** relabeledMatrix, unsigned char** inputIma
         memset(XorArray[i], 1, 45 * sizeof(unsigned char));
     }
 
+    // Performing the XOR operation
     int x = 0, y = 0; // mask co-ordinates
     int N = 46, xLimit = 0, yLimit = 0;
 
@@ -418,22 +425,22 @@ int holes_protrusions_calculator(int** relabeledMatrix, unsigned char** inputIma
                     //To calculate protrusions in each puzzle
                     d = (N / 2) + 2;
                     count = 0;
-                    if (tempImage[midX - d][midY] == '1') {
+                    if (tempImage[midX - d][midY] == '1') { // Checking a protrusion on the left(West)
                         protrusions[k - 1][count] = 1;
                     }
                     count++;
 
-                    if (tempImage[midX][midY + d] == '1') {
+                    if (tempImage[midX][midY + d] == '1') { // protrusion at the bottom(south)
                         protrusions[k - 1][count] = 1;
                     }
                     count++;
 
-                    if (tempImage[midX + d][midY] == '1') {
+                    if (tempImage[midX + d][midY] == '1') {  // protrusion on the right(east)
                         protrusions[k - 1][count] = 1;
                     }
                     count++;
 
-                    if (tempImage[midX][midY - d] == '1') {
+                    if (tempImage[midX][midY - d] == '1') { // protrusion at the top(north)
                         protrusions[k - 1][count] = 1;
                     }
 
@@ -441,22 +448,22 @@ int holes_protrusions_calculator(int** relabeledMatrix, unsigned char** inputIma
                     count = 0;
                     d = (N / 2) - 2;
                     //top
-                    if (tempImage[midX - d][midY] == '1') {
+                    if (tempImage[midX - d][midY] == '1') { // left
                         holes[k - 1][count] = 1;
                     }
                     count++;
                     //right
-                    if (tempImage[midX][midY + d] == '1') {
+                    if (tempImage[midX][midY + d] == '1') { // bottom
                         holes[k - 1][count] = 1;
                     }
                     count++;
                     //bottom
-                    if (tempImage[midX + d][midY] == '1') {
+                    if (tempImage[midX + d][midY] == '1') { // right
                         holes[k - 1][count] = 1;
                     }
                     count++;
                     //left
-                    if (tempImage[midX][midY - d] == '1') {
+                    if (tempImage[midX][midY - d] == '1') {  //top
                         holes[k - 1][count] = 1;
                     }
                 }
@@ -481,13 +488,18 @@ int holes_protrusions_calculator(int** relabeledMatrix, unsigned char** inputIma
     bool m_found=false;
     int **matches = NULL;
     matches = create_2Darray(matches, 2, 20);
+    
+    // Comparing 2 jig saws at a time - P1H1 and P2H2
     for (int m = 1; m <= 16; ++m) {
+        
+        // Loading the first jigsaw, which is to be compared with the rest  
         for (int k = 0; k < 4; k++) {
             temp_H1[k] = holes[m - 1][k];
             temp_P1[k] = protrusions[m - 1][k];
         }
         for (int n = 1; n <= 16; ++n) {
             if (m != n) {
+                // Loading the second jigsaw
                 for (int k = 0; k < 4; k++) {
                     temp_H2[k] = holes[n - 1][k];
                     temp_P2[k] = protrusions[n - 1][k];
@@ -498,6 +510,8 @@ int holes_protrusions_calculator(int** relabeledMatrix, unsigned char** inputIma
                         match_flag = 1;
                         break;
                     }
+                    
+                    // Right rotate by 1 position
                     rightRotate(temp_H2, 1, 4);
                     rightRotate(temp_P2, 1, 4);
                 }
